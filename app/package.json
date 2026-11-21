@@ -1,0 +1,12 @@
+{
+  "name": "todo-floating",
+  "productName": "桌面待办悬浮",
+  "version": "2.2.1",
+  "description": "常驻桌面角落的悬浮月历待办挂件：看日期、记工作、勾完成、重复任务、到期提醒、Excel 导入导出",
+  "main": "main.js",
+  "author": "shiyanlong08",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron ."
+  }
+}

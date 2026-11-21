@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self'">
+<title>月历待办</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="card">
+  <header class="hd" id="hd">
+    <div class="hd-left">
+      <span class="dot" id="dot"></span>
+      <span class="ttl">月历待办</span>
+      <span class="cnt clickable" id="openCnt" title="点击查看全部待办">0</span>
+    </div>
+    <div class="hd-acts no-drag">
+      <button class="hd-btn" id="btnReminder" title="到期提醒设置">提醒</button>
+      <button class="hd-btn rec" id="btnRepeat" title="定时 / 重复任务">重复</button>
+      <button class="hd-btn" id="btnExcel" title="Excel 导入 / 导出">Excel</button>
+      <button class="icon-btn" id="btnPin" title="置顶 / 取消置顶">
+        <svg viewBox="0 0 16 16" width="13" height="13"><path fill="currentColor" d="M9.8 1.2 14.8 6.2 13.4 7.6 12.3 6.5 8.8 10l1.3 1.3-1.4 1.4L6.4 10.4 3.6 13.2l-1.9.7.7-1.9 2.8-2.8L2.3 6.9 3.7 5.5 5 6.8 8.5 3.3 7.4 2.2Z"/></svg>
+      </button>
+      <button class="icon-btn" id="btnCollapse" title="收起为窄条">
+        <svg viewBox="0 0 16 16" width="13" height="13"><path fill="currentColor" d="m4 6 4 4 4-4 1.4 1.4L8 12.8 2.6 7.4Z"/></svg>
+      </button>
+      <button class="icon-btn" id="btnHide" title="隐藏到托盘">
+        <svg viewBox="0 0 16 16" width="13" height="13"><path fill="currentColor" d="M2 7h12v2H2z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="month-bar no-drag">
+    <button class="nav" id="prevM" title="上个月">&#8249;</button>
+    <select class="ymsel" id="yearSel" title="快速选择年份"></select>
+    <span class="ym-unit">年</span>
+    <select class="ymsel" id="monthSel" title="快速选择月份"></select>
+    <span class="ym-unit">月</span>
+    <button class="nav" id="nextM" title="下个月">&#8250;</button>
+    <button class="mini" id="multiBtn" title="多选模式：点击日期可逐个选中">多选</button>
+    <button class="mini" id="calSizeBtn" title="日历大小：自适应 / 紧凑 / 标准（点击切换）">自适应</button>
+    <button class="mini" id="todayBtn">今天</button>
+    <button class="mini ico" id="shrinkBtn" title="窗口调低一些">&#8615;</button>
+    <button class="mini ico" id="growBtn" title="窗口调高一些">&#8613;</button>
+  </div>
+
+  <div class="weekdays" id="weekdays"></div>
+  <div class="cal" id="cal"></div>
+
+  <section class="day-panel">
+    <div class="day-hd">
+      <span id="dayTitle"></span>
+      <span class="day-hd-right">
+        <button class="mini ico" id="taskPrev" title="上一个待办">&#8249;</button>
+        <button class="mini ico" id="taskNext" title="下一个待办">&#8250;</button>
+        <button class="mini" id="copyBtn" title="复制选中日期的任务（可粘贴到微信/文档）">复制</button>
+        <button class="mini ico" id="stepPrev" title="上一个待办（跨日期，循环）">&#8593;</button>
+        <button class="mini ico" id="stepNext" title="下一个待办（跨日期，循环）">&#8595;</button>
+        <button class="mini" id="clearSel" hidden title="清除多选，只保留最后点击的日期">清空多选</button>
+        <span class="day-count" id="dayCount"></span>
+      </span>
+    </div>
+    <div class="day-list" id="dayList"></div>
+  </section>
+
+  <footer class="ft no-drag">
+    <form id="addForm">
+      <input id="newInput" type="text" maxlength="120" placeholder="记一条工作，回车存到选中日期" autocomplete="off">
+      <button type="submit" class="add-btn">添加</button>
+    </form>
+    <div class="ft-hint"><span class="hint-text">点日期单选 · Ctrl/多选逐个选 · Shift连选 · 新增到最后点击日</span><span id="saveTip"></span></div>
+  </footer>
+
+  <div class="toast" id="toast" hidden>
+    <div class="toast-hd"><span id="toastTitle">待办到期提醒</span><button id="toastClose">&#215;</button></div>
+    <div class="toast-body" id="toastBody"></div>
+  </div>
+
+  <div class="ovl" id="edOvl" hidden>
+    <div class="box">
+      <div class="box-ttl">编辑当天任务</div>
+      <input id="edText" type="text" maxlength="120" placeholder="任务内容">
+      <div class="row2">
+        <input id="edTime" type="time" title="可选时间">
+        <input id="edDue" type="date" title="日期">
+      </div>
+      <input id="edTags" type="text" maxlength="80" placeholder="标签，空格分隔（如 科技部 客户运营部）">
+      <div class="box-acts">
+        <span class="tip" id="edTip"></span>
+        <button class="btn" id="edCancel">取消</button>
+        <button class="btn primary" id="edSave">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ovl" id="listOvl" hidden>
+    <div class="box list-box">
+      <div class="box-ttl list-ttl">
+        <span id="listTitle">待办速览</span>
+        <span class="list-nav no-drag">
+          <button class="nav" id="listPrev" title="上一个待办（也可按 ↑）">&#8249;</button>
+          <span class="list-pos" id="listPos"></span>
+          <button class="nav" id="listNext" title="下一个待办（也可按 ↓）">&#8250;</button>
+        </span>
+      </div>
+      <div class="box-note">点箭头或按 ↑ / ↓ 切换待办；点击任一条跳到月历对应待办，点「编辑」直接修改</div>
+      <div class="list-body" id="listBody"></div>
+      <div class="box-acts">
+        <span class="tip" id="listTip"></span>
+        <button class="btn" id="listFilter">显示全部</button>
+        <button class="btn primary" id="listClose">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ovl" id="ruleOvl" hidden>
+    <div class="box rule-box">
+      <div class="box-ttl">定时 / 重复任务</div>
+      <input id="ruText" type="text" maxlength="100" placeholder="任务内容，如：晨会 / 写周报">
+      <div class="row2">
+        <select id="ruType">
+          <option value="once">指定日期一次</option>
+          <option value="daily">每天</option>
+          <option value="weekly">每周</option>
+          <option value="monthly">每月</option>
+          <option value="interval">每隔 N 天</option>
+        </select>
+        <input id="ruTime" type="time" title="可选时间">
+      </div>
+      <div class="row2">
+        <input id="ruStart" type="date" title="开始 / 指定日期">
+        <input id="ruWeekday" type="number" min="0" max="6" value="0" title="0=周一，6=周日">
+        <input id="ruMonthday" type="number" min="1" max="31" value="1" title="每月几号">
+        <input id="ruInterval" type="number" min="1" max="365" value="3" title="每隔几天">
+      </div>
+      <div class="rule-list" id="ruleList"></div>
+      <div class="box-acts">
+        <span class="tip" id="ruTip"></span>
+        <button class="btn" id="ruClose">关闭</button>
+        <button class="btn primary" id="ruSave">添加规则</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ovl" id="rmOvl" hidden>
+    <div class="box">
+      <div class="box-ttl">到期提醒设置</div>
+      <label class="ck-line"><input type="checkbox" id="rmEnabled"> 开启到期提醒（重复事项同样提醒）</label>
+      <div class="row2">
+        <select id="rmLead" title="提前多久提醒">
+          <option value="0">到点提醒</option>
+          <option value="5">提前 5 分钟</option>
+          <option value="15">提前 15 分钟</option>
+          <option value="30">提前 30 分钟</option>
+          <option value="60">提前 1 小时</option>
+          <option value="1440">提前 1 天</option>
+        </select>
+        <input id="rmAllDay" type="time" title="未填时间的任务按此时间提醒">
+      </div>
+      <div class="box-note">未填时间的任务按上面设定的时间提醒；任务文字开头写 <b>HH:MM</b> 则按该时间提醒。</div>
+      <div class="box-acts">
+        <span class="tip" id="rmTip"></span>
+        <button class="btn" id="rmClear">重置记录</button>
+        <button class="btn" id="rmTest">测试</button>
+        <button class="btn primary" id="rmSave">保存</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ovl" id="xlOvl" hidden>
+    <div class="box">
+      <div class="box-ttl">Excel 导入 / 导出</div>
+      <div class="box-note" id="xlScopeNote">导出范围：全部任务</div>
+      <select id="xlScope" title="选择导出范围">
+        <option value="all">导出全部任务</option>
+        <option value="sel">仅导出选中日期</option>
+        <option value="range">导出指定日期段</option>
+      </select>
+      <div class="row2" id="xlRange" hidden>
+        <input id="xlFrom" type="date" title="开始日期">
+        <input id="xlTo" type="date" title="结束日期">
+      </div>
+      <div class="xl-acts">
+        <button class="btn primary" id="xlImport">导入 Excel</button>
+        <button class="btn" id="xlExport">导出 Excel</button>
+      </div>
+      <div class="xl-acts">
+        <button class="btn" id="xlCopyTable">复制选中日期表格</button>
+        <button class="btn" id="xlTemplate">下载导入模板</button>
+      </div>
+      <div class="box-note">支持 .xlsx 和 .csv。列顺序：日期、时间、事项、状态、标签；导入时按「事项 + 日期」自动去重。</div>
+      <div class="box-acts">
+        <span class="tip" id="xlTip"></span>
+        <button class="btn" id="xlClose">关闭</button>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="app.js"></script>
+</body>
+</html>

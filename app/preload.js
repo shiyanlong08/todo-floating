@@ -1,0 +1,32 @@
+'use strict';
+const { contextBridge, ipcRenderer } = require('electron');
+
+contextBridge.exposeInMainWorld('api', {
+  getTasks: () => ipcRenderer.invoke('tasks:get'),
+  toggleTask: (id) => ipcRenderer.invoke('task:toggle', id),
+  setTaskDue: (id, due) => ipcRenderer.invoke('task:setDue', id, due),
+  updateTask: (id, data) => ipcRenderer.invoke('task:update', id, data),
+  addTask: (text, due) => ipcRenderer.invoke('task:add', text, due),
+  removeTask: (id) => ipcRenderer.invoke('task:remove', id),
+  getRules: () => ipcRenderer.invoke('rules:get'),
+  addRule: (data) => ipcRenderer.invoke('rule:add', data),
+  updateRule: (id, data) => ipcRenderer.invoke('rule:update', id, data),
+  removeRule: (id) => ipcRenderer.invoke('rule:remove', id),
+  getReminder: () => ipcRenderer.invoke('reminder:get'),
+  setReminder: (data) => ipcRenderer.invoke('reminder:set', data),
+  testReminder: () => ipcRenderer.invoke('reminder:test'),
+  clearReminders: () => ipcRenderer.invoke('reminder:clear'),
+  exportExcel: (file, opts) => ipcRenderer.invoke('excel:export', file, opts),
+  importExcel: (file) => ipcRenderer.invoke('excel:import', file),
+  excelTemplate: () => ipcRenderer.invoke('excel:template'),
+  setCollapsed: (c) => ipcRenderer.send('ui:collapse', c),
+  setPin: (p) => ipcRenderer.send('ui:pin', p),
+  hide: () => ipcRenderer.send('ui:hide'),
+  resizeWindow: (delta) => ipcRenderer.invoke('ui:resize', delta),
+  copyText: (text) => ipcRenderer.invoke('clipboard:write', text),
+  openVault: () => ipcRenderer.invoke('app:openVault'),
+  getState: () => ipcRenderer.invoke('app:state'),
+  onTasks: (cb) => ipcRenderer.on('tasks:updated', (_e, payload) => cb(payload)),
+  onState: (cb) => ipcRenderer.on('app:state', (_e, payload) => cb(payload)),
+  onReminder: (cb) => ipcRenderer.on('reminder:fire', (_e, payload) => cb(payload)),
+});
